@@ -2,4 +2,7 @@
     <string name="app_name">Flix</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_detail">Details</string>
+    <string name="rating_text">User Rating</string>
+    <string name="released_text">Release Date</string>
+    <string name="overview_text">Overview: </string>
 </resources>

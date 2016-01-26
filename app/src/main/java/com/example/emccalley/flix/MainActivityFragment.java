@@ -38,13 +38,19 @@ public class MainActivityFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+
                 // Intent to see movie details
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra(Intent.EXTRA_TEXT, mTitles[position]);
+                Bundle extras = new Bundle();
+                extras.putInt("EXTRA_THUMB", R.drawable.fightclub1);
+                extras.putString("EXTRA_TITLE", mTitles[position]);
+                extras.putFloat("EXTRA_SCORE", 90.5f);
+                extras.putString("EXTRA_DATE", "2015");
+                extras.putString("EXTRA_OVERVIEW", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+                intent.putExtras(extras);
                 startActivity(intent);
             }
         });
-
         return rootView;
     }
 
