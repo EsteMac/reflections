@@ -2,6 +2,8 @@ package com.example.emccalley.flix;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -25,6 +27,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A fragment containing main movie grid view
@@ -32,6 +36,10 @@ import java.net.URL;
 public class MainActivityFragment extends Fragment {
 
     private ImageAdapter mMovieAdapter;
+    private ArrayList<Bitmap> bitmapList;
+
+    // TMDB movie results JSONArray
+    JSONArray resultsArray = null;
 
     public MainActivityFragment() {
     }
@@ -40,11 +48,13 @@ public class MainActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mMovieAdapter = new ImageAdapter(getContext());
+        // The ImageAdapter will take data from a source and
+        // use it to populate the GridView it's attached to
+        mMovieAdapter = new ImageAdapter(getActivity(), new ArrayList<Bitmap>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        // Get a reference to the GridView, and attach this adapter to it.
+        // Get a reference to the GridView and attach adapter to it
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview_movies);
         gridView.setAdapter(mMovieAdapter);
 
@@ -68,15 +78,50 @@ public class MainActivityFragment extends Fragment {
         return rootView;
     }
 
-    public class ImageAdapter extends BaseAdapter {
-        private Context mContext;
+    private void updateMovies() {
+        FetchMoviesTask moviesTask = new FetchMoviesTask();
+        moviesTask.execute();
+    }
 
-        public ImageAdapter(Context c) {
-            mContext = c;
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateMovies();
+    }
+
+    // Helper method to pull bitmaps from movieList
+    public ArrayList<Bitmap> getBitmapList(ArrayList<HashMap<String, Object>> list) {
+        ArrayList<Bitmap> bitList = new ArrayList<Bitmap>();
+        Bitmap bmp;
+
+        for (int i=0; i < list.size(); i++) {
+            bmp = (Bitmap) list.get(i).get("poster_path");
+            bitList.add(bmp);
+        }
+        return bitList;
+    }
+
+    public class ImageAdapter extends BaseAdapter {
+
+        private Context mContext;
+        private ArrayList<Bitmap> bitList;
+
+        public ImageAdapter(Context context, ArrayList<Bitmap> bitList) {
+            this.mContext = context;
+            this.bitList = bitList;
+        }
+
+        /**
+         * Updates grid data and refresh grid items.
+         * @param bitList
+         */
+        public void setGridData(ArrayList<Bitmap> bitList) {
+            this.bitList = bitList;
+            notifyDataSetChanged();
         }
 
         public int getCount() {
-            return mThumbIds.length;
+            return bitList.size();
         }
 
         public Object getItem(int position) {
@@ -92,33 +137,17 @@ public class MainActivityFragment extends Fragment {
             ImageView imageView;
             if (convertView == null) {
                 // if it's not recycled, initialize some attributes
-                imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(400, 600));
+                imageView = new ImageView(this.mContext);
+                imageView.setLayoutParams(new GridView.LayoutParams(300, 450));
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 imageView.setPadding(0, 0, 0, 0);
             } else {
                 imageView = (ImageView) convertView;
             }
 
-            imageView.setImageResource(mThumbIds[position]);
+            imageView.setImageBitmap(this.bitList.get(position));
             return imageView;
         }
-
-        // references to our images
-        private Integer[] mThumbIds = {
-                R.drawable.fightclub1, R.drawable.fightclub2,
-                R.drawable.fightclub3, R.drawable.fightclub4,
-                R.drawable.fightclub5, R.drawable.fightclub6,
-                R.drawable.fightclub1, R.drawable.fightclub2,
-                R.drawable.fightclub3, R.drawable.fightclub4,
-                R.drawable.fightclub5, R.drawable.fightclub6,
-                R.drawable.fightclub1, R.drawable.fightclub2,
-                R.drawable.fightclub3, R.drawable.fightclub4,
-                R.drawable.fightclub5, R.drawable.fightclub6,
-                R.drawable.fightclub1, R.drawable.fightclub2,
-                R.drawable.fightclub3, R.drawable.fightclub4,
-                R.drawable.fightclub5, R.drawable.fightclub6
-        };
     }
 
     // references to movie titles
@@ -137,70 +166,91 @@ public class MainActivityFragment extends Fragment {
             "Fight Club 23", "Fight Club 24"
     };
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String[][]> {
+    public class FetchMoviesTask extends AsyncTask<Void, Void, ArrayList<HashMap<String, Object>>> {
 
         private final String LOG_TAG = "Estevan";
+        private final String apiKey = "13b190834687e176fea30f493119cb2d";
+        private final String APIKEY_PARAM = "api_key";
+
 
         /**
          * Take the String representing movie data in JSON Format and
-         * pull out the data we need to construct the Strings needed for the wireframes.
+         * pull out the data we need to construct the strings and images needed for the wireframes.
          */
-        protected String[][] getMovieDataFromJson (String moviesJsonStr) throws JSONException {
+        protected ArrayList<HashMap<String, Object>> getMovieDataFromJson (String moviesJsonStr) throws JSONException {
 
             // These are the names of the JSON objects that need to be extracted
-            final String TMDB_LIST = "results";
-            final String TMDB_TITLE = "original_title";
-            final String TMDB_POSTER = "poster_path";
+            final String TMDB_RESULTS = "results";
+            final String TMDB_ORIGINAL_TITLE = "original_title";
+            final String TMDB_POSTER_PATH = "poster_path";
             final String TMDB_OVERVIEW = "overview";
-            final String TMDB_RATING = "vote_average";
-            final String TMDB_DATE = "release_date";
+            final String TMDB_VOTE_AVERAGE = "vote_average";
+            final String TMDB_RELEASE_DATE = "release_date";
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
-            JSONArray moviesArray = moviesJson.getJSONArray(TMDB_LIST);
+            resultsArray = moviesJson.getJSONArray(TMDB_RESULTS);
 
-            String[][] resultStrs = new String[moviesArray.length()][5];
+            // Hashmap for GridView
+            ArrayList<HashMap<String, Object>> movieList = new ArrayList<>();
 
-            for (int i = 0; i < moviesArray.length(); i++) {
+            // Loop through all movies
+            for (int i = 0; i < resultsArray.length(); i++) {
+                JSONObject r = resultsArray.getJSONObject(i);
 
-                String movieTitle;
-                String moviePoster;
-                String movieOverview;
-                String movieRating;
-                String movieDate;
+                String originalTitle = r.getString(TMDB_ORIGINAL_TITLE);
+                String posterPath = r.getString(TMDB_POSTER_PATH);
+                String overview = r.getString(TMDB_OVERVIEW);
+                String voteAverage = r.getString(TMDB_VOTE_AVERAGE);
+                String releaseDate = r.getString(TMDB_RELEASE_DATE);
 
-                // Get the JSON object representing the movie
-                JSONObject movie = moviesArray.getJSONObject(i);
+                // tmp hashmap for single movie
+                HashMap<String, Object> movie = new HashMap<String, Object>();
 
-                // Get movie title
-                movieTitle = movie.getJSONObject(TMDB_TITLE).toString();
-                resultStrs[i][0] = movieTitle;
+                // adding each child node to HashMap key => value
+                movie.put(TMDB_ORIGINAL_TITLE, originalTitle);
+                movie.put(TMDB_POSTER_PATH, getBitmapFromURL(posterPath));
+                movie.put(TMDB_OVERVIEW, overview);
+                movie.put(TMDB_VOTE_AVERAGE, voteAverage);
+                movie.put(TMDB_RELEASE_DATE, releaseDate);
 
-                // Get movie poster path
-                moviePoster = movie.getJSONObject(TMDB_POSTER).toString();
-                resultStrs[i][1] = moviePoster;
-
-                // Get movie overview
-                movieOverview = movie.getJSONObject(TMDB_OVERVIEW).toString();
-                resultStrs[i][2] = movieOverview;
-
-                // Get movie rating
-                movieRating = movie.getJSONObject(TMDB_RATING).toString();
-                resultStrs[i][3] = movieRating;
-
-                // Get movie release date
-                movieDate = movie.getJSONObject(TMDB_DATE).toString();
-                resultStrs[i][4] = movieDate;
+                // add movie to movie list
+                movieList.add(movie);
             }
-            return resultStrs;
+            return movieList;
+        }
+
+        // Helper method to get movie poster bitmap from cloud
+        protected Bitmap getBitmapFromURL(String fileName) {
+            final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
+            final String POSTER_WIDTH = "w300";
+            final String POSTER_PATH = fileName;
+
+            try {
+                Uri posterbuiltUri = Uri.parse(POSTER_BASE_URL).buildUpon()
+                        .appendPath(POSTER_WIDTH)
+                        .appendPath(fileName.replace("/", ""))
+                        .build();
+
+                URL url = new URL(posterbuiltUri.toString());
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap posterBitmap = BitmapFactory.decodeStream(input);
+                return posterBitmap;
+            } catch (IOException e) {
+                // Log exception
+                return null;
+            }
         }
 
         @Override
-        protected String[][] doInBackground(String... params) {
+        protected ArrayList<HashMap<String, Object>> doInBackground(Void... params) {
 
             // If there are no movies there is nothing to look up. Verify size of params.
-            if (params.length == 0) {
-                return null;
-            }
+            // if (params.length == 0) {
+            //    Log.e("ServiceHandler", "There aren't any movies");
+            // }
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -209,16 +259,14 @@ public class MainActivityFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String moviesJsonStr = null;
-            String apiKey = "13b190834687e176fea30f493119cb2d";
 
             try {
                 // Construct the URL for the TheMovieDB query
                 // Possible parameters are available at TMDB's API page, at
                 // https://www.themoviedb.org/documentation/api
-                final String FORECAST_BASE_URL = "https://api.themoviedb.org/3/discover/movie";
-                final String APIKEY_PARAM = "api_key";
+                final String MOVIES_BASE_URL = "https://api.themoviedb.org/3/discover/movie";
 
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+                Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
                         .appendQueryParameter(APIKEY_PARAM, apiKey)
                         .build();
 
@@ -236,7 +284,7 @@ public class MainActivityFragment extends Fragment {
                 StringBuffer buffer = new StringBuffer();
                 if (inputStream == null) {
                     // Nothing to do.
-                    return null;
+                    Log.e("ServiceHandler", "Couldn't get any data from the url");
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -250,7 +298,7 @@ public class MainActivityFragment extends Fragment {
 
                 if (buffer.length() == 0) {
                     // Stream was empty.  No point in parsing.
-                    return null;
+                    Log.e("ServiceHandler", "Couldn't get any data from the url");
                 }
                 moviesJsonStr = buffer.toString();
 
@@ -260,7 +308,7 @@ public class MainActivityFragment extends Fragment {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the movies data, there's no point in attempting
                 // to parse it.
-                return null;
+                Log.e("ServiceHandler", "Couldn't get any data from the url");
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -284,9 +332,10 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[][] result) {
+        protected void onPostExecute(ArrayList<HashMap<String, Object>> result) {
             if (result != null) {
-
+                bitmapList = getBitmapList(result);
+                mMovieAdapter.setGridData(bitmapList);
             }
         }
     }
