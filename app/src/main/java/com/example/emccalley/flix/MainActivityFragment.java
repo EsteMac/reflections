@@ -36,10 +36,6 @@ import java.util.HashMap;
 public class MainActivityFragment extends Fragment {
 
     private ImageAdapter mMovieAdapter;
-    private ArrayList<Bitmap> bitmapList;
-
-    // TMDB movie results JSONArray
-    JSONArray resultsArray = null;
 
     public MainActivityFragment() {
     }
@@ -91,7 +87,7 @@ public class MainActivityFragment extends Fragment {
 
     // Helper method to pull bitmaps from movieList
     public ArrayList<Bitmap> getBitmapList(ArrayList<HashMap<String, Object>> list) {
-        ArrayList<Bitmap> bitList = new ArrayList<Bitmap>();
+        ArrayList<Bitmap> bitList = new ArrayList<>();
         Bitmap bmp;
 
         for (int i=0; i < list.size(); i++) {
@@ -113,7 +109,7 @@ public class MainActivityFragment extends Fragment {
 
         /**
          * Updates grid data and refresh grid items.
-         * @param bitList
+         * @param bitList is a bitmap list used to populate grid.
          */
         public void setGridData(ArrayList<Bitmap> bitList) {
             this.bitList = bitList;
@@ -150,7 +146,8 @@ public class MainActivityFragment extends Fragment {
         }
     }
 
-    // references to movie titles
+    // references to dummy movie titles
+    // will eventually replace with titles from TMDB API
     private String[] mTitles = {
             "Fight Club 1", "Fight Club 2",
             "Fight Club 3", "Fight Club 4",
@@ -188,7 +185,7 @@ public class MainActivityFragment extends Fragment {
             final String TMDB_RELEASE_DATE = "release_date";
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
-            resultsArray = moviesJson.getJSONArray(TMDB_RESULTS);
+            JSONArray resultsArray = moviesJson.getJSONArray(TMDB_RESULTS);
 
             // Hashmap for GridView
             ArrayList<HashMap<String, Object>> movieList = new ArrayList<>();
@@ -334,7 +331,7 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<HashMap<String, Object>> result) {
             if (result != null) {
-                bitmapList = getBitmapList(result);
+                ArrayList<Bitmap> bitmapList = getBitmapList(result);
                 mMovieAdapter.setGridData(bitmapList);
             }
         }
