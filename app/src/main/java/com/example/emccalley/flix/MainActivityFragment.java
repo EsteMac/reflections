@@ -36,7 +36,7 @@ import java.util.HashMap;
  */
 public class MainActivityFragment extends Fragment {
 
-    private ImageAdapter mMovieAdapter;
+    private CustomAdapter mMovieAdapter;
 
     public MainActivityFragment() {
     }
@@ -45,9 +45,9 @@ public class MainActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // The ImageAdapter will take data from a source and
+        // The CustomAdapter will take data from a source and
         // use it to populate the GridView it's attached to
-        mMovieAdapter = new ImageAdapter(getActivity(), new ArrayList<Bitmap>());
+        mMovieAdapter = new CustomAdapter(getActivity(), new ArrayList<Bitmap>(), new ArrayList<HashMap<String, Object>>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -70,10 +70,10 @@ public class MainActivityFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Bundle extras = new Bundle();
                 extras.putByteArray("EXTRA_THUMB", b);
-                extras.putString("EXTRA_TITLE", mTitles[position]);
-                extras.putFloat("EXTRA_SCORE", 90.5f);
-                extras.putString("EXTRA_DATE", "2015");
-                extras.putString("EXTRA_OVERVIEW", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+                extras.putString("EXTRA_TITLE", mMovieAdapter.entireList.get(position).get("original_title").toString());
+                extras.putString("EXTRA_SCORE", mMovieAdapter.entireList.get(position).get("vote_average").toString());
+                extras.putString("EXTRA_DATE", mMovieAdapter.entireList.get(position).get("release_date").toString());
+                extras.putString("EXTRA_OVERVIEW", mMovieAdapter.entireList.get(position).get("overview").toString());
                 intent.putExtras(extras);
                 startActivity(intent);
             }
@@ -104,22 +104,25 @@ public class MainActivityFragment extends Fragment {
         return bitList;
     }
 
-    public class ImageAdapter extends BaseAdapter {
+    public class CustomAdapter extends BaseAdapter {
 
         private Context mContext;
         private ArrayList<Bitmap> bitList;
+        private ArrayList<HashMap<String, Object>> entireList;
 
-        public ImageAdapter(Context context, ArrayList<Bitmap> bitList) {
+        public CustomAdapter(Context context, ArrayList<Bitmap> bitList, ArrayList<HashMap<String, Object>> entireList) {
             this.mContext = context;
             this.bitList = bitList;
+            this.entireList = entireList;
         }
 
         /**
          * Updates grid data and refresh grid items.
          * @param bitList is a bitmap list used to populate grid.
          */
-        public void setGridData(ArrayList<Bitmap> bitList) {
+        public void setGridData(ArrayList<Bitmap> bitList, ArrayList<HashMap<String, Object>> entireList) {
             this.bitList = bitList;
+            this.entireList = entireList;
             notifyDataSetChanged();
         }
 
@@ -152,23 +155,6 @@ public class MainActivityFragment extends Fragment {
             return imageView;
         }
     }
-
-    // references to dummy movie titles
-    // will eventually replace with titles from TMDB API
-    private String[] mTitles = {
-            "Fight Club 1", "Fight Club 2",
-            "Fight Club 3", "Fight Club 4",
-            "Fight Club 5", "Fight Club 6",
-            "Fight Club 7", "Fight Club 8",
-            "Fight Club 9", "Fight Club 10",
-            "Fight Club 11", "Fight Club 12",
-            "Fight Club 13", "Fight Club 14",
-            "Fight Club 15", "Fight Club 16",
-            "Fight Club 17", "Fight Club 18",
-            "Fight Club 19", "Fight Club 20",
-            "Fight Club 21", "Fight Club 22",
-            "Fight Club 23", "Fight Club 24"
-    };
 
     public class FetchMoviesTask extends AsyncTask<Void, Void, ArrayList<HashMap<String, Object>>> {
 
@@ -339,7 +325,7 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(ArrayList<HashMap<String, Object>> result) {
             if (result != null) {
                 ArrayList<Bitmap> bitmapList = getBitmapList(result);
-                mMovieAdapter.setGridData(bitmapList);
+                mMovieAdapter.setGridData(bitmapList, result);
             }
         }
     }

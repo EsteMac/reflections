@@ -30,9 +30,9 @@ public class DetailActivity extends ActionBarActivity {
 
     public static class DetailFragment extends Fragment {
 
-        private String mTitleStr;
         private Bitmap image;
-        private float score;
+        private String mTitleStr;
+        private String score;
         private String date;
         private String overview;
 
@@ -60,9 +60,8 @@ public class DetailActivity extends ActionBarActivity {
                 thumbView.setImageBitmap(image);
 
                 // Get user score
-                score = extras.getFloat("EXTRA_SCORE");
-                String scoreAsString = Float.toString(score);
-                ((TextView) rootView.findViewById(R.id.rating_score)).setText(scoreAsString);
+                score = extras.getString("EXTRA_SCORE");
+                ((TextView) rootView.findViewById(R.id.rating_score)).setText(score);
 
                 // Get movie release date
                 date = extras.getString("EXTRA_DATE");
