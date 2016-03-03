@@ -1,7 +1,8 @@
 package com.example.emccalley.flix;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -30,7 +31,7 @@ public class DetailActivity extends ActionBarActivity {
     public static class DetailFragment extends Fragment {
 
         private String mTitleStr;
-        private Drawable image;
+        private Bitmap image;
         private float score;
         private String date;
         private String overview;
@@ -53,9 +54,10 @@ public class DetailActivity extends ActionBarActivity {
                 ((TextView) rootView.findViewById(R.id.title_text)).setText(mTitleStr);
 
                 // Get movie thumbnail image
-                image = getResources().getDrawable(extras.getInt("EXTRA_THUMB", -1));
+                byte[] b = extras.getByteArray("EXTRA_THUMB");
+                image = BitmapFactory.decodeByteArray(b, 0, b.length);
                 ImageView thumbView = (ImageView) rootView.findViewById(R.id.movie_thumb);
-                thumbView.setImageDrawable(image);
+                thumbView.setImageBitmap(image);
 
                 // Get user score
                 score = extras.getFloat("EXTRA_SCORE");

@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,10 +60,16 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
+                // Convert image poster to byte array in order to pass via intent
+                Bitmap bitmap = mMovieAdapter.bitList.get(position);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                byte[] b = baos.toByteArray();
+
                 // Intent to see movie details
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Bundle extras = new Bundle();
-                extras.putInt("EXTRA_THUMB", R.drawable.fightclub1);
+                extras.putByteArray("EXTRA_THUMB", b);
                 extras.putString("EXTRA_TITLE", mTitles[position]);
                 extras.putFloat("EXTRA_SCORE", 90.5f);
                 extras.putString("EXTRA_DATE", "2015");
