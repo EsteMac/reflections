@@ -36,7 +36,16 @@ import java.util.HashMap;
  */
 public class MainActivityFragment extends Fragment {
 
+    // This adapter will populate views with data captured from TMDB
     private CustomAdapter mMovieAdapter;
+
+    // These are the names of the JSON objects from TMDB that need to be extracted
+    final String TMDB_RESULTS = "results";
+    final String TMDB_ORIGINAL_TITLE = "original_title";
+    final String TMDB_POSTER_PATH = "poster_path";
+    final String TMDB_OVERVIEW = "overview";
+    final String TMDB_VOTE_AVERAGE = "vote_average";
+    final String TMDB_RELEASE_DATE = "release_date";
 
     public MainActivityFragment() {
     }
@@ -70,15 +79,21 @@ public class MainActivityFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Bundle extras = new Bundle();
                 extras.putByteArray("EXTRA_THUMB", b);
-                extras.putString("EXTRA_TITLE", mMovieAdapter.entireList.get(position).get("original_title").toString());
-                extras.putString("EXTRA_SCORE", mMovieAdapter.entireList.get(position).get("vote_average").toString());
-                extras.putString("EXTRA_DATE", mMovieAdapter.entireList.get(position).get("release_date").toString());
-                extras.putString("EXTRA_OVERVIEW", mMovieAdapter.entireList.get(position).get("overview").toString());
+                extras.putString("EXTRA_TITLE", getMovieString(position, TMDB_ORIGINAL_TITLE));
+                extras.putString("EXTRA_SCORE", getMovieString(position, TMDB_VOTE_AVERAGE));
+                extras.putString("EXTRA_DATE", getMovieString(position, TMDB_RELEASE_DATE));
+                extras.putString("EXTRA_OVERVIEW", getMovieString(position, TMDB_OVERVIEW));
                 intent.putExtras(extras);
                 startActivity(intent);
             }
         });
         return rootView;
+    }
+
+
+    // Helper method to pull movie text info from mMovieAdapter
+    public String getMovieString(int position, String str) {
+        return mMovieAdapter.entireList.get(position).get(str).toString();
     }
 
     private void updateMovies() {
@@ -98,7 +113,7 @@ public class MainActivityFragment extends Fragment {
         Bitmap bmp;
 
         for (int i=0; i < list.size(); i++) {
-            bmp = (Bitmap) list.get(i).get("poster_path");
+            bmp = (Bitmap) list.get(i).get(TMDB_POSTER_PATH);
             bitList.add(bmp);
         }
         return bitList;
@@ -156,6 +171,7 @@ public class MainActivityFragment extends Fragment {
         }
     }
 
+
     public class FetchMoviesTask extends AsyncTask<Void, Void, ArrayList<HashMap<String, Object>>> {
 
         private final String LOG_TAG = "Estevan";
@@ -168,14 +184,6 @@ public class MainActivityFragment extends Fragment {
          * pull out the data we need to construct the strings and images needed for the wireframes.
          */
         protected ArrayList<HashMap<String, Object>> getMovieDataFromJson (String moviesJsonStr) throws JSONException {
-
-            // These are the names of the JSON objects that need to be extracted
-            final String TMDB_RESULTS = "results";
-            final String TMDB_ORIGINAL_TITLE = "original_title";
-            final String TMDB_POSTER_PATH = "poster_path";
-            final String TMDB_OVERVIEW = "overview";
-            final String TMDB_VOTE_AVERAGE = "vote_average";
-            final String TMDB_RELEASE_DATE = "release_date";
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray resultsArray = moviesJson.getJSONArray(TMDB_RESULTS);
@@ -213,7 +221,6 @@ public class MainActivityFragment extends Fragment {
         protected Bitmap getBitmapFromURL(String fileName) {
             final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
             final String POSTER_WIDTH = "w300";
-            final String POSTER_PATH = fileName;
 
             try {
                 Uri posterbuiltUri = Uri.parse(POSTER_BASE_URL).buildUpon()
@@ -226,8 +233,7 @@ public class MainActivityFragment extends Fragment {
                 connection.setDoInput(true);
                 connection.connect();
                 InputStream input = connection.getInputStream();
-                Bitmap posterBitmap = BitmapFactory.decodeStream(input);
-                return posterBitmap;
+                return BitmapFactory.decodeStream(input);
             } catch (IOException e) {
                 // Log exception
                 return null;
