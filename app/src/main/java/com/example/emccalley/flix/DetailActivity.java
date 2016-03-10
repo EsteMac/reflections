@@ -33,6 +33,7 @@ public class DetailActivity extends ActionBarActivity {
         private Bitmap image;
         private String mTitleStr;
         private String score;
+        private String popularity;
         private String date;
         private String overview;
 
@@ -62,6 +63,10 @@ public class DetailActivity extends ActionBarActivity {
                 // Get user score
                 score = extras.getString("EXTRA_SCORE");
                 ((TextView) rootView.findViewById(R.id.rating_score)).setText(score);
+
+                // Get popularity
+                popularity = extras.getString("EXTRA_POPULARITY");
+                ((TextView) rootView.findViewById(R.id.popularity_score)).setText(popularity);
 
                 // Get movie release date
                 date = extras.getString("EXTRA_DATE");

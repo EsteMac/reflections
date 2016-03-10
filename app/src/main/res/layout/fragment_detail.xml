@@ -50,6 +50,29 @@
         android:textColor="#212121"/>
 
     <TextView
+        android:id="@+id/popularity_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rating_score"
+        android:layout_toRightOf="@id/movie_thumb"
+        android:paddingLeft="8dp"
+        android:paddingTop="24dp"
+        android:textSize="16dp"
+        android:text="@string/popularity_text"/>
+
+    <TextView
+        android:id="@+id/popularity_score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rating_score"
+        android:layout_toRightOf="@id/popularity_text"
+        android:paddingLeft="8dp"
+        android:paddingTop="24dp"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:textColor="#212121"/>
+
+    <TextView
         android:id="@+id/released_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

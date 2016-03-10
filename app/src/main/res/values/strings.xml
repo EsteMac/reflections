@@ -3,6 +3,9 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_detail">Details</string>
     <string name="rating_text">User Rating</string>
+    <string name="popularity_text">Popularity</string>
     <string name="released_text">Release Date</string>
     <string name="overview_text">Overview: </string>
+    <string name="action_sort_by_popularity">Sort By Popularity</string>
+    <string name="action_sort_by_rating">Sort By Rating</string>
 </resources>
