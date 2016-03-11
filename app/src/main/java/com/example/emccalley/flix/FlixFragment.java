@@ -44,8 +44,8 @@ public class FlixFragment extends Fragment {
     // This adapter will populate views with data captured from TMDB
     private CustomAdapter mMovieAdapter;
 
+    // This list will contain all the data from the TMDB API
     private ArrayList<HashMap<String, Object>> movieList;
-    ArrayList<Bitmap> bitmapList;
 
     // These are the names of the JSON objects from TMDB that need to be extracted
     final String TMDB_RESULTS = "results";
@@ -82,23 +82,21 @@ public class FlixFragment extends Fragment {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_sort_by_popularity) {
             sortByPopularity(movieList, TMDB_POPULARITY);
-            bitmapList = getBitmapList(movieList);
-            mMovieAdapter.setGridData(bitmapList, movieList);
+            mMovieAdapter.setGridData(movieList);
             return true;
         }
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_sort_by_rating) {
             sortByPopularity(movieList, TMDB_VOTE_AVERAGE);
-            bitmapList = getBitmapList(movieList);
-            mMovieAdapter.setGridData(bitmapList, movieList);
+            mMovieAdapter.setGridData(movieList);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     /**
-     * Sorts movieList
+     * Sorts movieList from highest to lowest parameter
      * @param alist is the master list used to populate grid.
      * @param movieKey is the HashMap key for the values we are sorting by.
      */
@@ -108,7 +106,7 @@ public class FlixFragment extends Fragment {
             public int compare(HashMap<String, Object> first, HashMap<String, Object> second) {
                 Double firstPopularity = Double.parseDouble(first.get(movieKey).toString());
                 Double secondPopularity = Double.parseDouble(second.get(movieKey).toString());
-                return firstPopularity.compareTo(secondPopularity);
+                return -1 * firstPopularity.compareTo(secondPopularity);
             }
         });
     }
@@ -119,7 +117,7 @@ public class FlixFragment extends Fragment {
 
         // The CustomAdapter will take data from a source and
         // use it to populate the GridView it's attached to
-        mMovieAdapter = new CustomAdapter(getActivity(), new ArrayList<Bitmap>(), new ArrayList<HashMap<String, Object>>());
+        mMovieAdapter = new CustomAdapter(getActivity(), new ArrayList<HashMap<String, Object>>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -186,27 +184,27 @@ public class FlixFragment extends Fragment {
     public class CustomAdapter extends BaseAdapter {
 
         private Context mContext;
-        private ArrayList<Bitmap> bitList;
         private ArrayList<HashMap<String, Object>> entireList;
+        private ArrayList<Bitmap> bitList;
 
-        public CustomAdapter(Context context, ArrayList<Bitmap> bitList, ArrayList<HashMap<String, Object>> entireList) {
+        public CustomAdapter(Context context, ArrayList<HashMap<String, Object>> entireList) {
             this.mContext = context;
-            this.bitList = bitList;
             this.entireList = entireList;
+            this.bitList = getBitmapList(entireList);
         }
 
         /**
          * Updates grid data and refresh grid items.
-         * @param bitList is a bitmap list used to populate grid.
+         * @param entireList is all the data from the TMDB API used to populate the UI.
          */
-        public void setGridData(ArrayList<Bitmap> bitList, ArrayList<HashMap<String, Object>> entireList) {
-            this.bitList = bitList;
+        public void setGridData(ArrayList<HashMap<String, Object>> entireList) {
             this.entireList = entireList;
+            this.bitList = getBitmapList(entireList);
             notifyDataSetChanged();
         }
 
         public int getCount() {
-            return bitList.size();
+            return entireList.size();
         }
 
         public Object getItem(int position) {
@@ -397,8 +395,7 @@ public class FlixFragment extends Fragment {
         protected void onPostExecute(ArrayList<HashMap<String, Object>> result) {
             if (result != null) {
                 movieList = result;
-                bitmapList = getBitmapList(movieList);
-                mMovieAdapter.setGridData(bitmapList, movieList);
+                mMovieAdapter.setGridData(movieList);
             }
         }
     }
