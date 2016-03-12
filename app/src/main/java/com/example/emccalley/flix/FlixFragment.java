@@ -284,7 +284,7 @@ public class FlixFragment extends Fragment {
         // Helper method to get movie poster bitmap from cloud
         protected Bitmap getBitmapFromURL(String fileName) {
             final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
-            final String POSTER_WIDTH = "w300";
+            final String POSTER_WIDTH = "w185";
 
             try {
                 Uri posterbuiltUri = Uri.parse(POSTER_BASE_URL).buildUpon()
